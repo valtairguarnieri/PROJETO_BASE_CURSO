@@ -2,8 +2,22 @@ import { FastifyInstance } from 'fastify';
 import { pool } from './db';
 
 export async function registerRoutes(app: FastifyInstance) {
+  // Health básico — backend no ar
   app.get('/health', async () => {
     return { status: 'ok', timestamp: new Date() };
+  });
+
+  // Health do banco — testa conexão real com o PostgreSQL
+  app.get('/health/db', async (_request, reply) => {
+    try {
+      await pool.query('SELECT 1');
+      return { status: 'ok', timestamp: new Date() };
+    } catch (error) {
+      return reply.status(500).send({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Erro desconhecido',
+      });
+    }
   });
 
   app.get('/api/items', async () => {
